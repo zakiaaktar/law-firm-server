@@ -85,6 +85,14 @@ async function run() {
 
 
 
+        app.get('/appointmentSpecialty', async (req, res) => {
+            const query = {}
+            const result = await appointmentOptionCollection.find(query).project({ name: 1 }).toArray();
+            res.send(result);
+        })
+
+
+
 
         app.get('/bookings', verifyJWT, async (req, res) => {
             const email = req.query.email;
@@ -153,6 +161,14 @@ async function run() {
         });
 
 
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin' });
+        })
+
+
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -163,13 +179,13 @@ async function run() {
 
 
         app.put('/users/admin/:id', verifyJWT, async (req, res) => {
-            // const decodedEmail = req.decoded.email;
-            // const query = { email: decodedEmail };
-            // const user = await usersCollection.findOne(query);
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
 
-            // if (user?.role !== 'admin') {
-            //     return res.status(403).send({ message: 'forbidden access' })
-            // }
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
 
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
