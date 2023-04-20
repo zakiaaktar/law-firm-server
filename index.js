@@ -63,6 +63,7 @@ async function run() {
         const appointmentOptionCollection = client.db('lawFirm').collection('appointmentOptions');
         const bookingsCollection = client.db('lawFirm').collection('bookings');
         const usersCollection = client.db('lawFirm').collection('users');
+        const lawyersCollection = client.db('lawFirm').collection('lawyers');
 
 
 
@@ -198,6 +199,30 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         });
+
+
+
+        app.get('/lawyers', async (req, res) => {
+            const query = {};
+            const lawyers = await lawyersCollection.find(query).toArray();
+            res.send(lawyers);
+        })
+
+
+
+        app.post('/lawyers', async (req, res) => {
+            const lawyer = req.body;
+            const result = await lawyersCollection.insertOne(lawyer);
+            res.send(result);
+        });
+
+
+        app.delete('/lawyers/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await lawyersCollection.deleteOne(filter);
+            res.send(result);
+        })
 
 
     }
