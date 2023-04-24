@@ -67,6 +67,24 @@ async function run() {
 
 
 
+
+        // verifyAdmin after verifyJWT
+        const verifyAdmin = async (req, res, next) => {
+            console.log('inside verifyAdmin', req.decoded.email)
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+        }
+
+
+
+
+
         app.get('/appointmentOptions', async (req, res) => {
             const date = req.query.date;
             //console.log(date);
@@ -179,14 +197,14 @@ async function run() {
 
 
 
-        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
-            const decodedEmail = req.decoded.email;
-            const query = { email: decodedEmail };
-            const user = await usersCollection.findOne(query);
+        app.put('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            // const decodedEmail = req.decoded.email;
+            // const query = { email: decodedEmail };
+            // const user = await usersCollection.findOne(query);
 
-            if (user?.role !== 'admin') {
-                return res.status(403).send({ message: 'forbidden access' })
-            }
+            // if (user?.role !== 'admin') {
+            //     return res.status(403).send({ message: 'forbidden access' })
+            // }
 
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -202,7 +220,7 @@ async function run() {
 
 
 
-        app.get('/lawyers', async (req, res) => {
+        app.get('/lawyers', verifyJWT, verifyAdmin, async (req, res) => {
             const query = {};
             const lawyers = await lawyersCollection.find(query).toArray();
             res.send(lawyers);
@@ -210,14 +228,14 @@ async function run() {
 
 
 
-        app.post('/lawyers', async (req, res) => {
+        app.post('/lawyers', verifyJWT, verifyAdmin, async (req, res) => {
             const lawyer = req.body;
             const result = await lawyersCollection.insertOne(lawyer);
             res.send(result);
         });
 
 
-        app.delete('/lawyers/:id', async (req, res) => {
+        app.delete('/lawyers/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const result = await lawyersCollection.deleteOne(filter);
